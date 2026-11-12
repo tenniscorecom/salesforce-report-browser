@@ -1,0 +1,43 @@
+# Ruff（リント・フォーマット）の設定。comken 本体と揃える。
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+extend-exclude = [".pytest-tmp", ".pytest-*", "_scripts"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "C4", "C90", "LOG", "G", "DTZ", "RUF", "TID"]
+ignore = [
+    # 日本語のコード・コメント・docstring を「紛らわしい文字」として大量に誤検知するため
+    "RUF001", "RUF002", "RUF003",
+    # __all__ は意味のまとまり順に並べているため、アルファベット順の強制は受け入れない
+    "RUF022",
+]
+
+[tool.ruff.lint.flake8-tidy-imports]
+# 相対 import は禁止。ドットを数える作業を残さないため。
+# 必ず `from comken.X import Y` のようにパッケージルートから書く（CONVENTIONS.md 参照）
+ban-relative-imports = "all"
+
+[tool.ruff.lint.mccabe]
+# 分岐の絡み合いの上限。
+# 関数を分割するたびに下げる（目標 10）。 10 を超える関数は分割して再コミットする。
+max-complexity = 10
+
+[tool.ruff.lint.per-file-ignores]
+# テストは assert のための仮実装・cleanup の try/except が読みやすさ優先で残るため、
+# bugbear 系（try/except/Pass 等）の警告を抑止する。 複雑度チェック（C901）は
+# テストヘルパー（``_collect_violations`` など）が「検証パターンを 1 か所に
+# まとめる」ために ``for``/``if`` を連ねる形になりやすく、 ソース本体向けの
+# 基準（10）をテストにも要求すると API ではなく検証網羅が歪むため除外する。
+"tests/**" = ["B017", "SIM105", "C901"]
+
+[tool.pytest.ini_options]
+# テストをどこから呼んでも `browser_report` が見つかるようにする
+# （`python -m pytest` ならカレントが sys.path に入るが、`pytest` 単体では入らない）
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[tool.pyright]
+# 開発時は隣接する comken リポジトリを直接参照する。実行環境では
+# 環境変数 ``PYTHON_LIBRARY`` の値を ``PYTHONPATH`` に足して使う。
+extraPaths = [".", "../comken"]
